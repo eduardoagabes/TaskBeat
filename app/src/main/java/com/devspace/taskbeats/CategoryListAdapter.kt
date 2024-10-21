@@ -4,6 +4,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.constraintlayout.motion.widget.MotionScene.Transition.TransitionOnClick
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -12,9 +13,14 @@ class CategoryListAdapter :
     ListAdapter<CategoryUiData, CategoryListAdapter.CategoryViewHolder>(CategoryListAdapter) {
 
     private lateinit var onClick: (CategoryUiData) -> Unit
+    private lateinit var onLongClick: (CategoryUiData) -> Unit
 
     fun setOnClickListener(onClick: (CategoryUiData) -> Unit) {
         this.onClick = onClick
+    }
+
+    fun setOnLongClickListener(onLongClick: (CategoryUiData) -> Unit) {
+        this.onLongClick = onLongClick
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CategoryViewHolder {
@@ -25,19 +31,29 @@ class CategoryListAdapter :
 
     override fun onBindViewHolder(holder: CategoryViewHolder, position: Int) {
         val category = getItem(position)
-        holder.bind(category, onClick)
+        holder.bind(category, onClick, onLongClick)
     }
 
     class CategoryViewHolder(private val view: View) : RecyclerView.ViewHolder(view) {
         private val tvCategory = view.findViewById<TextView>(R.id.tv_category)
 
-        fun bind(category: CategoryUiData, onClick: (CategoryUiData) -> Unit) {
+        fun bind(
+            category: CategoryUiData,
+            onClick: (CategoryUiData) -> Unit,
+            OnLongClickListener: (CategoryUiData) -> Unit,
+        ) {
             tvCategory.text = category.name
             tvCategory.isSelected = category.isSelected
 
             view.setOnClickListener {
                 onClick.invoke(category)
             }
+
+            view.setOnLongClickListener {
+                OnLongClickListener.invoke(category)
+                true
+            }
+
         }
     }
 

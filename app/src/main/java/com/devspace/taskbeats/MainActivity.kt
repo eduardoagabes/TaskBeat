@@ -49,6 +49,26 @@ class MainActivity : AppCompatActivity() {
             showCreateUpdateTaskBottomSheet(task)
         }
 
+        categoryAdapter.setOnLongClickListener { categoryToBeDeleted ->
+            if (categoryToBeDeleted.name != "+") {
+                val title: String = this.getString(R.string.category_delete_title)
+                val description: String = this.getString(R.string.category_delete_description)
+                val btnText: String = this.getString(R.string.delete)
+
+                showInfoDialog(
+                    title,
+                    description,
+                    btnText
+                ) {
+                    val categoryEntityToBeDeleted = CategoryEntity(
+                        categoryToBeDeleted.name,
+                        categoryToBeDeleted.isSelected
+                    )
+                    deleteCategory(categoryEntityToBeDeleted)
+                }
+            }
+        }
+
         categoryAdapter.setOnClickListener { selected ->
             if (selected.name == "+") {
                 val createCategoryBottomSheet = CreateCategoryBottomSheet { categoryName ->
@@ -92,6 +112,25 @@ class MainActivity : AppCompatActivity() {
             getTasksFromDataBase()
 
         }
+    }
+
+    private fun showInfoDialog(
+        title: String,
+        description: String,
+        btnText: String,
+        onClick: () -> Unit
+    ) {
+        val infoBottomSheet = InfoBottomSheet(
+            title = title,
+            description = description,
+            btnText = btnText,
+            onClick
+        )
+
+        infoBottomSheet.show(
+            supportFragmentManager,
+            "infoBottomSheet"
+        )
     }
 
     private fun getCategoriesFromDataBase() {
@@ -143,17 +182,57 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun updateTask(taskEntity: TaskEntity) {
+        GlobalScope.launch(Dispatchers.IO) {
+            taskDao.update(taskEntity)
+            getTasksFromDataBase()
+        }
+    }
+
+    private fun deleteTask(taskEntity: TaskEntity) {
+        GlobalScope.launch(Dispatchers.IO) {
+            taskDao.delete(taskEntity)
+            getTasksFromDataBase()
+        }
+    }
+
+    private fun deleteCategory(categoryEntity: CategoryEntity) {
+        GlobalScope.launch(Dispatchers.IO) {
+            categoryDao.delete(categoryEntity)
+            getCategoriesFromDataBase()
+        }
+    }
+
     private fun showCreateUpdateTaskBottomSheet(taskUiData: TaskUiData? = null) {
         val createTaskBottomSheet = CreateOrUpdateTaskBottomSheet(
             task = taskUiData,
-            categoryList = categories
-        ) { taskToBeCreated ->
-            val taskEntityToBeInsert = TaskEntity(
-                name = taskToBeCreated.name,
-                category = taskToBeCreated.category
-            )
-            insertTask(taskEntityToBeInsert)
-        }
+            categoryList = categories,
+            onCreateClicked = { taskToBeCreated ->
+                val taskEntityToBeInsert = TaskEntity(
+                    name = taskToBeCreated.name,
+                    category = taskToBeCreated.category
+                )
+                insertTask(taskEntityToBeInsert)
+            },
+            onUpdateClicked = { taskToBeUpdate ->
+                val taskEntityToBeUpdate = TaskEntity(
+                    id = taskToBeUpdate.id,
+                    name = taskToBeUpdate.name,
+                    category = taskToBeUpdate.category
+                )
+                updateTask(taskEntityToBeUpdate)
+            },
+            onDeleteClicked = { taskToBeDelete ->
+                val taskEntityToBeDelete = TaskEntity(
+                    id = taskToBeDelete.id,
+                    name = taskToBeDelete.name,
+                    category = taskToBeDelete.category
+                )
+
+                deleteTask(taskEntityToBeDelete)
+            }
+        )
+
         createTaskBottomSheet.show(
             supportFragmentManager,
             "createTaskBottomSheet"
