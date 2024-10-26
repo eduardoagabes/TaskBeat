@@ -9,4 +9,4 @@ TaskBeat es una aplicación Android para gestionar tus tareas en un solo lugar, 
 - BottomSheetDialog
 - RoomDataBase
 
-<img src="https://github.com/user-attachments/assets/f3332b54-e7a5-46a5-aad0-c4daf7559a26" width=720/> 
+<img src="https://github.com/user-attachments/assets/cbc121c4-c00b-46d8-9536-c332ce49f1e9" width=720/> 
